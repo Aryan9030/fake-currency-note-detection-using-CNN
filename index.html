@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GRIDNET — LSTM Electricity Consumption Forecaster</title>
+    <meta
+      name="description"
+      content="A long short-term memory network trained in your browser to forecast hourly electricity consumption. Pure vanilla JavaScript — no frameworks, no ML libraries."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+    <script data-arena-recording="true">(function(){
+"use strict";
+var SK="__arena_rec",RRWEB_CDN="https://cdn.jsdelivr.net/npm/rrweb@2.0.0-alpha.4/dist/rrweb.min.js";
+var MAX_RECORDING_MS=600000,MAX_RRWEB_EVENTS=30000,MAX_INTERACTIONS=5000,MAX_CURSOR_POINTS=10000,recStopped=false;
+var stored=null;try{var raw=sessionStorage.getItem(SK);if(raw)stored=JSON.parse(raw);}catch(ex){}
+var meta=stored?stored.m||null:null,rrwebEvents=stored?stored.r||[]:[],rrwebStarted=false,startTime=stored?stored.st||Date.now():Date.now();
+var interactions=stored?stored.i||[]:[],cursorPath=stored?stored.c||[]:[],lastCursorSample=0,lastScrollSample=0;
+var pageHeight=document.documentElement.scrollHeight;
+var viewport={width:window.innerWidth,height:window.innerHeight};
+function isCapped(){if(recStopped)return true;if(Date.now()-startTime>=MAX_RECORDING_MS){recStopped=true;return true;}return false;}
+function persist(){try{var d=JSON.stringify({r:rrwebEvents,i:interactions,c:cursorPath,m:meta,st:startTime});sessionStorage.setItem(SK,d);}catch(ex){rrwebEvents=rrwebEvents.slice(Math.floor(rrwebEvents.length/2));try{sessionStorage.setItem(SK,JSON.stringify({r:rrwebEvents,i:interactions,c:cursorPath,m:meta,st:startTime}));}catch(ex2){}}}
+setInterval(persist,5000);
+window.addEventListener("resize",function(){viewport={width:window.innerWidth,height:window.innerHeight};pageHeight=document.documentElement.scrollHeight;});
+document.addEventListener("click",function(e){if(isCapped()||interactions.length>=MAX_INTERACTIONS)return;var el=e.target;var tag=el.tagName?el.tagName.toLowerCase():"";var text=(el.textContent||"").trim().substring(0,80);var classes=el.className&&typeof el.className==="string"?el.className.substring(0,120):"";interactions.push({type:"click",t:Date.now()-startTime,x:Math.round(e.clientX),y:Math.round(e.clientY),element:{tag:tag,text:text,classes:classes}});},true);
+window.addEventListener("scroll",function(){if(isCapped()||interactions.length>=MAX_INTERACTIONS)return;var now=Date.now();if(now-lastScrollSample<200)return;lastScrollSample=now;var scrollY=Math.round(window.scrollY||window.pageYOffset||0);var depthPct=pageHeight>viewport.height?Math.min(100,Math.round(((scrollY+viewport.height)/pageHeight)*100)):100;interactions.push({type:"scroll",t:now-startTime,y:scrollY,depth_pct:depthPct});},{passive:true});
+document.addEventListener("mousemove",function(e){if(isCapped()||cursorPath.length>=MAX_CURSOR_POINTS)return;var now=Date.now();if(now-lastCursorSample<250)return;lastCursorSample=now;cursorPath.push([Math.round(e.clientX),Math.round(e.clientY),now-startTime]);},{passive:true});
+document.addEventListener("keydown",function(e){if(isCapped()||interactions.length>=MAX_INTERACTIONS)return;if(e.target&&(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"))return;interactions.push({type:"keydown",t:Date.now()-startTime,key:e.key});},true);
+function buildAnalytics(){if(!meta)return null;var ph=document.documentElement.scrollHeight;var maxScroll=0,clickElements={},firstClick=null,firstScroll=null,totalDistance=0;for(var i=0;i<interactions.length;i++){var ev=interactions[i];if(ev.type==="scroll"){if(ev.depth_pct>maxScroll)maxScroll=ev.depth_pct;if(!firstScroll)firstScroll=ev.t;}if(ev.type==="click"){if(!firstClick)firstClick=ev.t;var key=ev.element.tag+":"+ev.element.text.substring(0,30);clickElements[key]=true;}}for(var j=1;j<cursorPath.length;j++){var dx=cursorPath[j][0]-cursorPath[j-1][0];var dy=cursorPath[j][1]-cursorPath[j-1][1];totalDistance+=Math.sqrt(dx*dx+dy*dy);}var duration=Date.now()-startTime;var clickHeatmap=[];for(var k=0;k<interactions.length;k++){if(interactions[k].type==="click")clickHeatmap.push([interactions[k].x,interactions[k].y]);}return{generation_id:meta.generationId,tournament_id:meta.tournamentId,started_at:new Date(startTime).toISOString(),ended_at:new Date().toISOString(),duration_ms:duration,viewport:viewport,page_height:ph,interactions:interactions,cursor_path:cursorPath,click_heatmap:clickHeatmap,summary:{total_clicks:clickHeatmap.length,total_scrolls:interactions.filter(function(e){return e.type==="scroll";}).length,max_scroll_depth_pct:maxScroll,unique_elements_clicked:Object.keys(clickElements).length,time_to_first_click_ms:firstClick,time_to_first_scroll_ms:firstScroll,cursor_distance_px:Math.round(totalDistance),active_time_ms:duration}};}
+function loadRrweb(){if(rrwebStarted)return;rrwebStarted=true;var s=document.createElement("script");s.src=RRWEB_CDN;s.onload=function(){var rec=(window.rrweb&&window.rrweb.record)||window.rrwebRecord;if(!rec)return;rec({emit:function(event){if(rrwebEvents.length>=MAX_RRWEB_EVENTS||isCapped())return;rrwebEvents.push(event);}});};s.onerror=function(){};document.head.appendChild(s);}
+window.addEventListener("message",function(e){if(!e.data||typeof e.data.type!=="string")return;if(e.data.type==="arena:init"){if(!meta)startTime=Date.now();meta={generationId:e.data.generationId||e.data.modelId,tournamentId:e.data.tournamentId};persist();loadRrweb();if(e.source)e.source.postMessage({type:"arena:init-ack",generationId:meta.generationId},"*");}if(e.data.type==="arena:flush"){var resp={type:"arena:recording-data",generationId:meta?meta.generationId:null,rrwebEvents:rrwebEvents,analytics:buildAnalytics()};try{sessionStorage.removeItem(SK);}catch(ex){}if(e.source)e.source.postMessage(resp,"*");}});
+loadRrweb();
+})();</script>
+  <script data-arena-views="true">(function(){var isTop=false;try{isTop=window.self===window.top;}catch(e){}if(!isTop)return;window.__ARENA_META={generationId:"glm-5.3",tournamentId:"a46875b6-7790-4a39-89e0-a93815c7393d"};var payload={tournamentId:"a46875b6-7790-4a39-89e0-a93815c7393d",modelId:"glm-5.3"};try{var r=document.referrer;if(r){var u=new URL(r);payload.referrerDomain=u.hostname;}}catch(e){}try{var vid=null;try{vid=localStorage.getItem('arena_vid');}catch(e){}if(!vid){vid=typeof crypto!=="undefined"&&crypto.randomUUID?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2)).slice(0,32);try{localStorage.setItem('arena_vid',vid);}catch(e){}}if(vid)payload.viewerId=vid;}catch(e){}try{fetch("https://www.designarena.ai/api/agon/page-views",{"method":"POST","headers":{"Content-Type":"application/json"},"body":JSON.stringify(payload),"keepalive":true});}catch(e){}})();</script>
+</head>
+
+  <body>
+    <!-- ambient background layers -->
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--a" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow--b" aria-hidden="true"></div>
+
+    <!-- ============================ TOP BAR ============================ -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">GRIDNET</span>
+          <span class="brand-sub">lstm load forecaster</span>
+        </div>
+      </div>
+
+      <nav class="topnav">
+        <a href="#lab">Lab</a>
+        <a href="#results">Results</a>
+        <a href="#model">Model</a>
+        <a href="#notes">Notes</a>
+      </nav>
+
+      <div class="pill" id="statusPill">
+        <span class="dot"></span>
+        <span id="statusText">engine idle</span>
+      </div>
+    </header>
+
+    <!-- ============================== HERO ============================= -->
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">
+          <span class="chip">v1.4</span>
+          <span>backpropagation through time · zero dependencies</span>
+        </div>
+        <h1>
+          Forecasting the grid,<br />
+          <span class="grad">one hour ahead.</span>
+        </h1>
+        <p class="lede">
+          A long short-term memory network — gates, cell state, gradient flow and all —
+          written from scratch in plain JavaScript and trained live in this tab on
+          synthetic hourly load data with daily and weekly seasonality, weather
+          sensitivity and measurement noise.
+        </p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" id="btnTrain">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
+            </svg>
+            <span id="btnTrainLabel">Train the network</span>
+          </button>
+          <button class="btn btn-ghost" id="btnReset">Reset</button>
+        </div>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-tile">
+          <span class="stat-num" id="hstatPoints">—</span>
+          <span class="stat-lbl">hourly samples</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-num" id="hstatParams">—</span>
+          <span class="stat-lbl">learnable params</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-num" id="hstatR2">—</span>
+          <span class="stat-lbl">test R²</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-num" id="hstatBeat">—</span>
+          <span class="stat-lbl">vs persistence</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== LAB ============================== -->
+    <main class="lab" id="lab">
+      <!-- ------------------------- CONTROL DECK ------------------------- -->
+      <aside class="controls">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Control deck</h2>
+            <span class="panel-tag">hyperparameters</span>
+          </div>
+
+          <label class="field">
+            <span class="field-lbl">Load profile</span>
+            <select id="selProfile">
+              <option value="residential">Residential feeder</option>
+              <option value="commercial">Commercial building</option>
+              <option value="industrial">Industrial plant</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-lbl">Hidden units <em>H</em></span>
+            <select id="selHidden">
+              <option value="8">8</option>
+              <option value="16">16</option>
+              <option value="24" selected>24</option>
+              <option value="32">32</option>
+              <option value="48">48</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-lbl">Look-back window <em>T</em></span>
+            <select id="selWindow">
+              <option value="24">24 h — one day</option>
+              <option value="32" selected>32 h</option>
+              <option value="48">48 h — two days</option>
+              <option value="72">72 h — three days</option>
+              <option value="168">168 h — one week</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-lbl">Optimisation steps</span>
+            <select id="selEpochs">
+              <option value="200">200 — quick</option>
+              <option value="400">400</option>
+              <option value="600" selected>600 — balanced</option>
+              <option value="1200">1200 — thorough</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-lbl">Learning rate</span>
+            <select id="selLr">
+              <option value="0.005">0.005</option>
+              <option value="0.01" selected>0.010</option>
+              <option value="0.02">0.020</option>
+              <option value="0.05">0.050</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-lbl">Forecast horizon</span>
+            <select id="selHorizon">
+              <option value="12">12 h</option>
+              <option value="24" selected>24 h</option>
+              <option value="48">48 h</option>
+            </select>
+          </label>
+
+          <div class="field">
+            <span class="field-lbl">
+              Sensor noise <b id="noiseVal">3.0%</b>
+            </span>
+            <input type="range" id="rngNoise" min="0" max="8" step="0.5" value="3" />
+          </div>
+
+          <div class="field">
+            <span class="field-lbl">
+              History <b id="daysVal">120 days</b>
+            </span>
+            <input type="range" id="rngDays" min="45" max="180" step="15" value="120" />
+          </div>
+
+          <div class="progress">
+            <div class="progress-top">
+              <span>training</span>
+              <b id="progressPct">0%</b>
+            </div>
+            <div class="progress-track">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-meta" id="progressMeta">awaiting start</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Live telemetry</h2>
+            <span class="panel-tag mono" id="statTime">0.0 s</span>
+          </div>
+          <div class="telemetry">
+            <div class="tele-row">
+              <span>step</span><b class="mono" id="statEpoch">0</b>
+            </div>
+            <div class="tele-row">
+              <span>train loss</span><b class="mono" id="statLoss">—</b>
+            </div>
+            <div class="tele-row">
+              <span>val loss</span><b class="mono accent" id="statVal">—</b>
+            </div>
+            <div class="tele-row">
+              <span>best val</span><b class="mono" id="statBest">—</b>
+            </div>
+            <div class="tele-row">
+              <span>lr (cosine)</span><b class="mono" id="statLr">—</b>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- -------------------------- WORKSPACE --------------------------- -->
+      <div class="workspace">
+        <section class="panel chart-panel">
+          <div class="panel-head">
+            <h2>Hourly consumption <span class="unit mono" id="chartUnit">kW</span></h2>
+            <div class="chart-tools">
+              <div class="zoom-group" id="zoomGroup">
+                <button class="zoom active" data-span="72">3d</button>
+                <button class="zoom" data-span="168">7d</button>
+                <button class="zoom" data-span="336">14d</button>
+                <button class="zoom" data-span="0">all</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-wrap" id="chartWrap">
+            <canvas id="chartMain"></canvas>
+            <div class="chart-tip mono" id="chartTip"></div>
+            <div class="chart-empty" id="chartEmpty">
+              Train the network to render a fitted curve and forecast
+            </div>
+          </div>
+
+          <div class="legend">
+            <label class="lg"><i class="sw sw-actual"></i><input type="checkbox" id="chkActual" checked /><span>actual</span></label>
+            <label class="lg"><i class="sw sw-fit"></i><input type="checkbox" id="chkFit" checked /><span>LSTM fit</span></label>
+            <label class="lg"><i class="sw sw-fcst"></i><input type="checkbox" id="chkFcst" checked /><span>forecast</span></label>
+            <label class="lg"><i class="sw sw-band"></i><input type="checkbox" id="chkBand" checked /><span>±2σ band</span></label>
+            <span class="lg-note mono" id="legendNote">train / test split at 80%</span>
+          </div>
+        </section>
+
+        <section class="metrics" id="results">
+          <div class="metric">
+            <span class="metric-lbl">RMSE</span>
+            <span class="metric-val mono" id="mRmse">—</span>
+            <span class="metric-sub mono" id="mRmseSub">1-step ahead</span>
+          </div>
+          <div class="metric">
+            <span class="metric-lbl">MAE</span>
+            <span class="metric-val mono" id="mMae">—</span>
+            <span class="metric-sub mono" id="mMaeSub">1-step ahead</span>
+          </div>
+          <div class="metric">
+            <span class="metric-lbl">MAPE</span>
+            <span class="metric-val mono" id="mMape">—</span>
+            <span class="metric-sub mono">mean abs % error</span>
+          </div>
+          <div class="metric">
+            <span class="metric-lbl">R²</span>
+            <span class="metric-val mono accent" id="mR2">—</span>
+            <span class="metric-sub mono">coefficient of det.</span>
+          </div>
+          <div class="metric">
+            <span class="metric-lbl">Multi-step</span>
+            <span class="metric-val mono" id="mMulti">—</span>
+            <span class="metric-sub mono" id="mMultiSub">recursive RMSE</span>
+          </div>
+        </section>
+
+        <div class="duo">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Optimisation curve</h2>
+              <span class="panel-tag mono">log scale</span>
+            </div>
+            <div class="chart-wrap chart-wrap--short"><canvas id="chartLoss"></canvas></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Hidden state activity</h2>
+              <span class="panel-tag mono" id="heatMeta">h ∈ [−1, 1]</span>
+            </div>
+            <div class="chart-wrap chart-wrap--short"><canvas id="chartHeat"></canvas></div>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Forecast sheet</h2>
+            <span class="panel-tag mono" id="fcMeta">recursive multi-step</span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>step</th>
+                  <th>timestamp</th>
+                  <th class="r">predicted</th>
+                  <th class="r">Δ vs 24 h ago</th>
+                  <th class="r">share of peak</th>
+                  <th class="r">magnitude</th>
+                </tr>
+              </thead>
+              <tbody id="fcBody">
+                <tr class="empty">
+                  <td colspan="6">No forecast yet — hit “Train the network”.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ----------------------------- MODEL ---------------------------- -->
+        <section class="panel model" id="model">
+          <div class="panel-head">
+            <h2>The model</h2>
+            <span class="panel-tag">univariate LSTM · many-to-many</span>
+          </div>
+
+          <div class="pipeline">
+            <div class="pipe-step">
+              <span class="pipe-idx mono">01</span>
+              <span class="pipe-name">Sliding window</span>
+              <span class="pipe-desc">last T normalised hours</span>
+            </div>
+            <svg class="pipe-arrow" viewBox="0 0 24 12" aria-hidden="true"><path d="M0 6h20m0 0-5-4m5 4-5 4" /></svg>
+            <div class="pipe-step">
+              <span class="pipe-idx mono">02</span>
+              <span class="pipe-name">LSTM cells</span>
+              <span class="pipe-desc">gates carry memory across T</span>
+            </div>
+            <svg class="pipe-arrow" viewBox="0 0 24 12" aria-hidden="true"><path d="M0 6h20m0 0-5-4m5 4-5 4" /></svg>
+            <div class="pipe-step">
+              <span class="pipe-idx mono">03</span>
+              <span class="pipe-name">Dense head</span>
+              <span class="pipe-desc">h<sub>t</sub> → ŷ<sub>t+1</sub></span>
+            </div>
+            <svg class="pipe-arrow" viewBox="0 0 24 12" aria-hidden="true"><path d="M0 6h20m0 0-5-4m5 4-5 4" /></svg>
+            <div class="pipe-step">
+              <span class="pipe-idx mono">04</span>
+              <span class="pipe-name">Denormalise</span>
+              <span class="pipe-desc">back to kilowatts</span>
+            </div>
+          </div>
+
+          <div class="eq-grid">
+            <div class="eq">
+              <span class="eq-name">forget gate</span>
+              <code class="mono">f<sub>t</sub> = σ(W<sub>f</sub>·[h<sub>t−1</sub>, x<sub>t</sub>] + b<sub>f</sub>)</code>
+            </div>
+            <div class="eq">
+              <span class="eq-name">input gate</span>
+              <code class="mono">i<sub>t</sub> = σ(W<sub>i</sub>·[h<sub>t−1</sub>, x<sub>t</sub>] + b<sub>i</sub>)</code>
+            </div>
+            <div class="eq">
+              <span class="eq-name">candidate</span>
+              <code class="mono">g<sub>t</sub> = tanh(W<sub>g</sub>·[h<sub>t−1</sub>, x<sub>t</sub>] + b<sub>g</sub>)</code>
+            </div>
+            <div class="eq">
+              <span class="eq-name">cell update</span>
+              <code class="mono">c<sub>t</sub> = f<sub>t</sub> ⊙ c<sub>t−1</sub> + i<sub>t</sub> ⊙ g<sub>t</sub></code>
+            </div>
+            <div class="eq">
+              <span class="eq-name">output gate</span>
+              <code class="mono">o<sub>t</sub> = σ(W<sub>o</sub>·[h<sub>t−1</sub>, x<sub>t</sub>] + b<sub>o</sub>)</code>
+            </div>
+            <div class="eq">
+              <span class="eq-name">hidden state</span>
+              <code class="mono">h<sub>t</sub> = o<sub>t</sub> ⊙ tanh(c<sub>t</sub>)</code>
+            </div>
+            <div class="eq">
+              <span class="eq-name">prediction</span>
+              <code class="mono">ŷ<sub>t+1</sub> = W<sub>y</sub>·h<sub>t</sub> + b<sub>y</sub></code>
+            </div>
+            <div class="eq">
+              <span class="eq-name">objective</span>
+              <code class="mono">L = ½T<sup>−1</sup> Σ (ŷ<sub>t+1</sub> − y<sub>t+1</sub>)²</code>
+            </div>
+          </div>
+
+          <div class="spec-row">
+            <div class="spec">
+              <span class="spec-lbl">trainable params</span>
+              <b class="mono" id="paramCount">—</b>
+            </div>
+            <div class="spec">
+              <span class="spec-lbl">BPTT depth</span>
+              <b class="mono" id="bpttDepth">—</b>
+            </div>
+            <div class="spec">
+              <span class="spec-lbl">train / test</span>
+              <b class="mono" id="splitInfo">—</b>
+            </div>
+            <div class="spec">
+              <span class="spec-lbl">optimiser</span>
+              <b class="mono">Adam + grad-clip</b>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ============================== NOTES ============================ -->
+    <section class="notes" id="notes">
+      <div class="note">
+        <h3>Why an LSTM here?</h3>
+        <p>
+          Load is dominated by periodic structure — a daily double peak, a weekly
+          weekday/weekend split, and slow weather drift. The cell state
+          <code class="mono">c<sub>t</sub></code> acts as a differentiable memory that can hold
+          “where in the day are we” across the whole look-back window, which a plain
+          feed-forward net cannot do without explicit calendar features.
+        </p>
+      </div>
+      <div class="note">
+        <h3>What is actually running</h3>
+        <p>
+          Every gate pre-activation is computed in a hand-written loop over
+          <code class="mono">Float64Array</code>s. Gradients are accumulated by backpropagation
+          through time over the full window, clipped to a global norm of 5, and applied
+          with Adam. Nothing is mocked — the loss you see fall is real.
+        </p>
+      </div>
+      <div class="note">
+        <h3>Honest caveats</h3>
+        <p>
+          The series is synthetic, so it is a teaching instrument rather than a grid
+          oracle. Recursive multi-step forecasts compound error, which is exactly why the
+          band widens with the horizon. Swap
+          <code class="mono">generateLoad()</code> for your own CSV and the rest of the
+          pipeline is unchanged.
+        </p>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span class="mono">GRIDNET</span>
+      <span class="sep"></span>
+      <span>LSTM electricity consumption forecaster — vanilla HTML / CSS / JS</span>
+      <span class="sep"></span>
+      <span class="mono dim" id="footStamp">no data leaves this tab</span>
+    </footer>
+
+    <script src="./script.js" defer></script>
+  </body>
+</html>
